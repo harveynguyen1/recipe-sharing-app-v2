@@ -3,17 +3,17 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 @Entity()
 export class Recipe {
     @PrimaryGeneratedColumn()
-    id;
+    id: number; // Explicitly define type as number
 
     @Column()
-    title;
+    title: string; // Define as string
 
     @Column()
-    category;
+    category: string; // Define as string
 
     @Column()
-    thumbnailURL;
+    thumbnailURL: string; // Define as string
 
     @Column()
-    instructions;
+    instructions: string; // Define as string
 }

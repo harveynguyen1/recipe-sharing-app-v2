@@ -4,12 +4,6 @@ import AddRecipe from '@/views/AddRecipe.vue';
 import Favorites from '@/views/Favorites.vue';
 import CreateUser from '@/views/CreateUser.vue';
 import Login from '@/views/Login.vue';
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import { AppDataSource } from './data-source';
-import { User } from './entities/User';
-import { Recipe } from './entities/Recipe';
 
 const routes = [
   { path: '/', component: Dashboard, meta: { requiresAuth: true } },

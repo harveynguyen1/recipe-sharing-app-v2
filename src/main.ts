@@ -1,5 +1,4 @@
 import './assets/main.css'
-import { AppDataSource } from './data-source';
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -14,13 +13,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const app = createApp(App)
 
-AppDataSource.initialize()
-    .then(() => {
-        console.log('Data Source has been initialized!');
-    })
-    .catch((err) => {
-        console.error('Error during Data Source initialization:', err);
-    });
 
 app.use(createPinia())
 app.use(router)
