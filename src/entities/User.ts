@@ -12,7 +12,7 @@ export class User {
     password: string; // Define as string
 
     @Column()
-    role: string; // Define as string ("admin", "write", "read")
+    accessLevel: string; // Define as string ("admin", "write", "read")
 
     @Column()
     token: string; // Define as string
