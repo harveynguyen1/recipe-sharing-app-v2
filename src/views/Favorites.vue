@@ -2,11 +2,32 @@
 import { ref, onMounted } from 'vue';
 import Navbar from '@/components/Navbar.vue';
 
+const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
 const favorites = ref([]);
+const errorMessage = ref('');
+
 
 const fetchFavorites = async () => {
-  const response = await fetch('/api/favorites');
-  favorites.value = await response.json();
+  try {
+    if (!userId) {
+      throw new Error('User ID is missing');
+    }
+
+    const response = await fetch(`http://localhost:3000/api/favorites/${userId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch favorite recipes');
+    }
+
+    favorites.value = await response.json();
+  } catch (error: any) {
+    errorMessage.value = error.message || 'An error occurred';
+  }
 };
 
 const removeFromFavorites = async (recipeId) => {
@@ -19,7 +40,6 @@ onMounted(fetchFavorites);
 
 <template>
   <div>
-    <Navbar />
     <div class="container mt-4">
       <h1 class="text-center">Your Favorite Recipes</h1>
       <div class="row">

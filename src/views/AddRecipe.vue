@@ -41,7 +41,6 @@ const submitRecipe = async () => {
 
 <template>
   <div>
-    <Navbar />
     <div class="container mt-4">
       <h1 class="text-center">Add Recipe</h1>
       <form @submit.prevent="submitRecipe">

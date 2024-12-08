@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user';
 import Dashboard from '@/views/Dashboard.vue';
 import AddRecipe from '@/views/AddRecipe.vue';
 import Favorites from '@/views/Favorites.vue';
@@ -7,16 +8,16 @@ import HomeView from '@/views/HomeView.vue';
 import Login from '@/views/Login.vue';
 
 const routes = [
-  { path: '/', component: HomeView, meta: { requiresAuth: true } },
+  { path: '/', name: 'Home', component: HomeView, meta: { requiresAuth: true } },
   {
-    path: '/dashboard', component: Dashboard, meta: { requiresAuth: true, role: ['admin', 'write'] },
+    path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true, role: ['admin', 'write'] },
   },
   {
-    path: '/add-recipe', component: AddRecipe, meta: {requiresAuth: true, role: ['admin', 'write']},
+    path: '/add-recipe', name: 'AddRecipe', component: AddRecipe, meta: {requiresAuth: true, role: ['admin', 'write']},
   },
-  { path: '/favorites', component: Favorites, meta: { requiresAuth: true } },
-  { path: '/create-user', component: CreateUser, meta: { requiresAuth: true, role: 'admin' } },
-  { path: '/login', component: Login },
+  { path: '/favorites',  name: 'Favorites', component: Favorites, meta: { requiresAuth: true } },
+  { path: '/create-user', name: 'CreateUser', component: CreateUser, meta: { requiresAuth: true, role: 'admin' } },
+  { path: '/login', name: 'Login', component: Login },
 ];
 
 const router = createRouter({
@@ -28,17 +29,24 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   const userRole = token ? localStorage.getItem('accessLevel') : null; // 'admin', 'write', 'read'
 
+  const userStore = useUserStore();
+
   if (to.meta.requiresAuth && !token) {
-    return next('/login');
-  } else if (to.meta.role && to.meta.role.includes('write')) {
-    next('/'); // Redirect to home if user has write access
+    console.log(to.meta.requiresAuth + ", token = " + token );
+    next('/login');
   }
-
-  if (to.meta.role && userRole !== 'admin') {
-    return next('/create-user');
+  else {
+    next();
   }
+  // else if (to.meta.role && to.meta.role.includes('write')) {
+  //   console.log(to.meta.role + ", to.meta.role = " + to.meta.role );
+  //   return next('/'); // Redirect to home if user has write access
+  // } else if (to.meta.role && to.meta.role.includes('admin')) {
+  //   console.log(to.meta.role + ", to.meta.role = " + to.meta.role );
+  //   return next('/create-user');
+  // }
 
-  next();
+  // next();
 });
 
 export default router

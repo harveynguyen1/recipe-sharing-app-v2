@@ -1,19 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Favorite } from './Favorite';
+import { IsNotEmpty, IsIn } from 'class-validator';
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id: number; // Explicitly define type as number
-
-    @Column({ unique: true })
-    username: string; // Define as string
+    id: number;
 
     @Column()
-    password: string; // Define as string
+    @IsNotEmpty()
+    username: string;
 
     @Column()
-    accessLevel: string; // Define as string ("admin", "write", "read")
+    @IsNotEmpty()
+    password: string;
 
     @Column()
-    token: string; // Define as string
+    @IsNotEmpty()
+    token: string;
+
+    @Column()
+    @IsIn(["read", "write", "admin"])
+    accessLevel: string;
+
+    @OneToMany(() => Favorite, favorite => favorite.user)
+    favorites: Favorite[]; // User's favorite recipes
 }

@@ -1,19 +1,34 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Favorite } from './Favorite';
+import { IsNotEmpty, Length } from 'class-validator';
 
 @Entity()
 export class Recipe {
     @PrimaryGeneratedColumn()
-    id: number; // Explicitly define type as number
+    id: number;
 
     @Column()
-    title: string; // Define as string
+    @IsNotEmpty()
+    title: string;
 
     @Column()
-    category: string; // Define as string
+    @IsNotEmpty()
+    description: string;
 
     @Column()
-    thumbnailURL: string; // Define as string
+    @Length(5, 100)
+    ingredients: string;
 
     @Column()
-    instructions: string; // Define as string
+    @Length(5, 300)
+    instructions: string;
+
+    @Column()
+    submittedBy: number;  // Reference to the user who submitted it
+
+    @Column({ default: () => "datetime('now')" })
+    createdAt: Date;
+
+    @OneToMany(() => Favorite, favorite => favorite.recipe)
+    favorites: Favorite[]; // List of users who favorited this recipe
 }

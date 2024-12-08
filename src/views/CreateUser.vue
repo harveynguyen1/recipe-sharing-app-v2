@@ -32,7 +32,6 @@ const createUser = async () => {
 
 <template>
   <div>
-    <Navbar />
     <div class="container mt-4">
       <h1 class="text-center">Create New User</h1>
       <form @submit.prevent="createUser">

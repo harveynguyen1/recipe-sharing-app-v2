@@ -96,7 +96,6 @@ onMounted(fetchRecipes);
 
 <template>
   <div>
-    <Navbar />
     <div class="container my-4">
       <!-- Search and Filter Section -->
       <div class="d-flex justify-content-between align-items-center mb-3">

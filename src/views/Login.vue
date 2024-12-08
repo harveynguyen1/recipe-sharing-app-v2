@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
 const username = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 const errorMessage = ref('');
+const userStore = useUserStore();
 
 const handleLogin = async () => {
   try {
@@ -22,22 +24,27 @@ const handleLogin = async () => {
       throw new Error('Invalid username or password');
     }
 
-    const { token, role } = await response.json();
+    const { userId, token, role } = await response.json();
+    userStore.setUser(token, role, userId, rememberMe.value);
 
     // Save token based on "Remember Me" selection
     if (rememberMe.value) {
+      localStorage.setItem('userId', userId);
       localStorage.setItem('token', token);
+      localStorage.setItem('accessLevel', role);
     } else {
+      sessionStorage.setItem('userId', userId);
       sessionStorage.setItem('token', token);
+      sessionStorage.setItem('accessLevel', role);
     }
 
-    // Redirect based on user role
+    // Redirect only once based on role
     if (role === 'admin') {
-      router.push('/dashboard'); // Redirect to Dashboard for Admin
+      return router.push('/dashboard');
     } else if (role === 'write') {
-      router.push('/add-recipe'); // Redirect to Add Recipe Page for Write role
+      return router.push('/add-recipe');
     } else if (role === 'read') {
-      router.push('/'); // Redirect to Homepage for Read role
+      return router.push('/');
     }
   } catch (error: any) {
     errorMessage.value = error.message || 'Failed to login. Please try again.';
@@ -47,7 +54,6 @@ const handleLogin = async () => {
 
 <template>
   <div class="container-fluid d-flex flex-column">
-    <NavBar />
     <div class="d-flex align-items-center justify-content-center py-5">
       <div class="card w-50">
         <div class="card-header text-center">
