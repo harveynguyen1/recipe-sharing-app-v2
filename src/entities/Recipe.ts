@@ -1,34 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
 import { Favorite } from './Favorite';
+import { User } from './User';
 import { IsNotEmpty, Length } from 'class-validator';
 
 @Entity()
 export class Recipe {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column()
     @IsNotEmpty()
-    title: string;
+    title!: string;
 
     @Column()
-    @IsNotEmpty()
-    description: string;
+    category!: string;
 
     @Column()
-    @Length(5, 100)
-    ingredients: string;
-
-    @Column()
-    @Length(5, 300)
+    @Length(5, 3000)
     instructions: string;
 
     @Column()
-    submittedBy: number;  // Reference to the user who submitted it
+    thumbnailURL!: string;
 
     @Column({ default: () => "datetime('now')" })
     createdAt: Date;
 
-    @OneToMany(() => Favorite, favorite => favorite.recipe)
-    favorites: Favorite[]; // List of users who favorited this recipe
+    // A recipe is submitted by one user
+    @ManyToOne(() => User, (user) => user.recipes, { onDelete: 'CASCADE' })
+    submittedBy: User;
+
+    // A recipe belongs to one favorite list
+    @ManyToOne(() => Favorite, (favorite) => favorite.recipes, { onDelete: 'CASCADE' })
+    favorite: Favorite;
 }

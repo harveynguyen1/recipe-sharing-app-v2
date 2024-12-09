@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useUserStore } from '@/stores/user';
+
 import Navbar from '@/components/Navbar.vue';
 
 const searchQuery = ref('');
@@ -15,6 +17,7 @@ const categories = ref([
   'Seafood',
   'Pasta',
 ]);
+const userStore = useUserStore();
 
 // Fetch recipes from TheMealDB API
 const fetchRecipes = async () => {
@@ -24,33 +27,57 @@ const fetchRecipes = async () => {
     );
     const data = await response.json();
     recipes.value = data.meals.map((meal) => ({
-      id: meal.idMeal,
+      // id: meal.idMeal,
       title: meal.strMeal,
       category: meal.strCategory,
-      thumbnailURL: meal.strMealThumb,
       instructions: meal.strInstructions,
+      thumbnailURL: meal.strMealThumb,
     }));
   } catch (error) {
     console.error('Error fetching recipes:', error);
   }
 };
 
-// Add recipe to favorites
-const addToFavorites = async (recipe) => {
+// Add recipe to the user's favorite list
+const addToFavorites = async (recipe: any) => {
+  const userId = userStore.userId;
+  const token = userStore.token;
+  if (!userId || !token) {
+    alert('You must be logged in to add to favorites.');
+    return;
+  }
+
   try {
-    const response = await fetch('/api/favorites', {
+    const response = await fetch(`/api/favorites/add`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(recipe),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId,
+        recipe: {
+          title: recipe.title,
+          category: recipe.category,
+          instructions: recipe.instructions,
+          thumbnailURL: recipe.thumbnailURL,
+          submittedBy: userId, // User submitting the recipe
+        },
+      }),
     });
 
+    // Handle the response
     if (response.ok) {
-      alert(`Added ${recipe.title} to favorites!`);
+      alert('Recipe added to favorites successfully!');
     } else {
-      alert('Failed to add to favorites.');
+      // Attempt to parse JSON if available
+      const errorData = await response.json().catch(() => null);
+      const errorMessage = errorData?.message || 'Failed to add recipe to favorites.';
+      alert(errorMessage);
     }
   } catch (error) {
-    console.error('Error adding to favorites:', error);
+    console.error('Error adding recipe to favorites:', error);
+    alert('An error occurred while adding to favorites.');
   }
 };
 

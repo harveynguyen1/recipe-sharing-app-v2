@@ -1,18 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { User } from './User';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Favorite } from './Favorite';
 import { Recipe } from './Recipe';
+import { IsNotEmpty, IsIn } from 'class-validator';
 
 @Entity()
-export class Favorite {
+export class User {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
-    @ManyToOne(() => User, user => user.favorites)
-    user: User; // Reference to the User entity
+    @Column()
+    @IsNotEmpty()
+    username!: string;
 
-    @ManyToOne(() => Recipe, recipe => recipe.favorites)
-    recipe: Recipe; // Reference to the Recipe entity
+    @Column()
+    @IsNotEmpty()
+    password!: string;
 
-    @Column({ default: () => "datetime('now')" })
-    createdAt: Date;
+    @Column()
+    @IsNotEmpty()
+    token!: string;
+
+    @Column()
+    @IsIn(["read", "write", "admin"])
+    accessLevel!: string;
+
+    // A user can have one favorite list
+    @OneToOne(() => Favorite, (favorite) => favorite.user, { cascade: true, eager: true })
+    @JoinColumn()
+    favorite: Favorite;
+
+    // A user can create many recipes
+    @OneToMany(() => Recipe, (recipe) => recipe.submittedBy)
+    recipes: Recipe[];
 }
