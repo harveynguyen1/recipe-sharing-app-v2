@@ -9,6 +9,9 @@ const favoriteRecipes = ref([]); // Store favorite recipes
 const userStore = useUserStore();
 const userId = userStore.userId; // Retrieve userId
 const token = userStore.token; // Get token
+const isEditing = ref(false); // Track if a recipe is being edited
+const editingRecipe = ref<any>(null); // Set initial value to null
+
 const favorites = ref([]);
 const errorMessage = ref('');
 
@@ -42,10 +45,44 @@ const fetchFavorites = async () => {
   }
 };
 
-// const removeFromFavorites = async (recipeId) => {
-//   await fetch(`/api/favorites/${recipeId}`, { method: 'DELETE' });
-//   favorites.value = favorites.value.filter((recipe) => recipe.id !== recipeId);
-// };
+const startEditing = (recipe) => {
+  isEditing.value = true;
+  editingRecipe.value = { ...recipe }; // Create a copy to edit
+};
+
+const saveRecipe = async () => {
+  try {
+    if (!editingRecipe.value) return; // Ensure editingRecipe is defined
+    const response = await fetch(`/api/favorites/edit/${editingRecipe.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(editingRecipe.value),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      errorMessage.value = errorData.message || 'Failed to update the recipe.';
+      return;
+    }
+
+    // Update the recipe in the local favoriteRecipes array
+    const index = favoriteRecipes.value.findIndex(
+        (recipe) => recipe.id === editingRecipe.value.id
+    );
+    if (index !== -1) {
+      favoriteRecipes.value[index] = { ...editingRecipe.value };
+    }
+
+    isEditing.value = false;
+    editingRecipe.value = null; // Reset editingRecipe after saving
+  } catch (error) {
+    console.error('Error saving recipe:', error);
+    errorMessage.value = 'An error occurred while saving the recipe.';
+  }
+};
 
 const deleteFavorite = async (recipeId: number) => {
   if (!userId || !token) {
@@ -84,23 +121,7 @@ onMounted(() => {
 </script>
 
 <template>
-<!--  <div>-->
-<!--    <div class="container mt-4">-->
-<!--      <h1 class="text-center">Your Favorite Recipes</h1>-->
-<!--      <div class="row">-->
-<!--        <div v-for="recipe in favorites" :key="recipe.id" class="col-md-6 mb-4">-->
-<!--          <div class="card">-->
-<!--            <img :src="recipe.thumbnailURL" class="card-img-top" :alt="recipe.title" />-->
-<!--            <div class="card-body">-->
-<!--              <h5 class="card-title">{{ recipe.title }}</h5>-->
-<!--              <p class="card-text">Category: {{ recipe.category }}</p>-->
-<!--              <button class="btn btn-danger" @click="removeFromFavorites(recipe.id)">Remove</button>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
+
   <div class="container mt-5">
     <h1 class="text-center">My Favorite Recipes</h1>
     <p v-if="errorMessage" class="text-danger text-center">{{ errorMessage }}</p>
@@ -111,7 +132,14 @@ onMounted(() => {
           class="col-md-4 mb-4"
       >
         <div class="card position-relative">
-          <!-- Red 'X' button -->
+          <!-- Blue edit button -->
+          <button
+              class="btn btn-primary btn-sm position-absolute top-0 start-0 m-2"
+              @click="startEditing(recipe)"
+          >
+            ✎
+          </button>
+          <!-- Red delete button -->
           <button
               class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
               @click="deleteFavorite(recipe.id)"
@@ -123,6 +151,55 @@ onMounted(() => {
             <h5 class="card-title">{{ recipe.title }}</h5>
             <p class="card-text">Category: {{ recipe.category }}</p>
             <p class="card-text">{{ recipe.instructions }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Modal -->
+    <div
+        v-if="isEditing && editingRecipe"
+        class="modal fade show d-block"
+        style="background-color: rgba(0, 0, 0, 0.5);"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Recipe</h5>
+            <button type="button" class="btn-close" @click="isEditing = false"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input
+                    v-model="editingRecipe.title"
+                    type="text"
+                    class="form-control"
+                    id="title"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <input
+                    v-model="editingRecipe.category"
+                    type="text"
+                    class="form-control"
+                    id="category"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="instructions" class="form-label">Instructions</label>
+                <textarea
+                    v-model="editingRecipe.instructions"
+                    class="form-control"
+                    id="instructions"
+                ></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="isEditing = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveRecipe">Save Changes</button>
           </div>
         </div>
       </div>
@@ -139,6 +216,11 @@ onMounted(() => {
 .card img {
   height: 200px;
   object-fit: cover;
+}
+
+.btn-primary {
+  z-index: 2;
+  cursor: pointer;
 }
 
 .btn-danger {
