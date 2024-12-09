@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
-const username = ref('');
+const username = ref(localStorage.getItem('rememberMe') === 'true' ? localStorage.getItem('username') || '' : '');
 const password = ref('');
-const rememberMe = ref(false);
+const rememberMe = ref(localStorage.getItem('rememberMe') === 'true'); // Auto-check "Remember Me" if set
 const errorMessage = ref('');
 const userStore = useUserStore();
 
@@ -21,11 +21,13 @@ const handleLogin = async () => {
     });
 
     if (!response.ok) {
-      throw new Error('Invalid username or password');
+      const errorData = await response.json();
+      errorMessage.value = errorData.message || 'Invalid credentials';
+      return;
     }
 
     const { userId, token, role } = await response.json();
-    userStore.setUser(token, role, userId, rememberMe.value);
+    userStore.setUser(token, role, userId, username.value, rememberMe.value);
 
     // Save token based on "Remember Me" selection
     if (rememberMe.value) {
