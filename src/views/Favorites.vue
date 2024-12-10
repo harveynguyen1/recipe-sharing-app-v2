@@ -144,7 +144,7 @@ onMounted(() => {
               class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
               @click="deleteFavorite(recipe.id)"
           >
-            X
+            <i class="bi bi-trash"></i>
           </button>
           <img :src="recipe.thumbnailURL" class="card-img-top" alt="Recipe Image" />
           <div class="card-body">
