@@ -1,58 +1,109 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import Navbar from '@/components/Navbar.vue';
+import { ref, onMounted  } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../stores/user';
 
+const router = useRouter();
+const userStore = useUserStore();
+const isAdmin = ref(false);
+// Form fields
 const username = ref('');
-const accessLevel = ref('Read');
-const token = ref('IhaveREADaccess');
+const password = ref('');
+const accessLevel = ref('read');
+const errorMessage = ref('');
+const successMessage = ref('');
 
-watch(accessLevel, (newValue) => {
-  const tokens = {
-    Admin: 'IhaveADMINaccess',
-    Write: 'IhaveWRITEaccess',
-    Read: 'IhaveREADaccess',
-  };
-  token.value = tokens[newValue];
+const accessLevels = ['read', 'write', 'admin'];
+
+onMounted(() => {
+  // Check if the logged-in user is an admin
+  isAdmin.value = userStore.role === 'admin';
 });
 
 const createUser = async () => {
-  const response = await fetch('/api/users', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: username.value, accessLevel: accessLevel.value, token: token.value }),
-  });
+  errorMessage.value = '';
+  successMessage.value = '';
 
-  if (response.ok) {
-    alert('User created successfully!');
-  } else {
-    alert('Failed to create user.');
+  try {
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userStore.token}`, // Use the logged-in user's token
+      },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value,
+        accessLevel: accessLevel.value,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      errorMessage.value = errorData.message || 'Error creating user';
+      return;
+    }
+
+    const data = await response.json();
+    successMessage.value = `User ${data.username} created successfully!`;
+
+    // Reset the form
+    username.value = '';
+    password.value = '';
+    accessLevel.value = 'read';
+  } catch (error) {
+    console.error('Error creating user:', error);
+    errorMessage.value = 'An error occurred while creating the user.';
   }
 };
 </script>
 
 <template>
-  <div>
-    <div class="container mt-4">
-      <h1 class="text-center">Create New User</h1>
+  <div class="create-user-container">
+    <h2>Create User</h2>
+    <div v-if="!isAdmin" class="alert alert-danger">
+      You don't have access to this page.
+    </div>
+    <div v-else>
       <form @submit.prevent="createUser">
         <div class="mb-3">
           <label for="username" class="form-label">Username</label>
-          <input v-model="username" id="username" class="form-control" type="text" required />
+          <input
+              v-model="username"
+              type="text"
+              id="username"
+              class="form-control"
+              placeholder="Enter username"
+              required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input
+              v-model="password"
+              type="password"
+              id="password"
+              class="form-control"
+              placeholder="Enter password"
+              required
+          />
         </div>
         <div class="mb-3">
           <label for="accessLevel" class="form-label">Access Level</label>
-          <select v-model="accessLevel" id="accessLevel" class="form-select" required>
-            <option value="Admin">Admin</option>
-            <option value="Write">Write</option>
-            <option value="Read">Read</option>
+          <select
+              v-model="accessLevel"
+              id="accessLevel"
+              class="form-select"
+          >
+            <option v-for="level in accessLevels" :key="level" :value="level">
+              {{ level }}
+            </option>
           </select>
         </div>
-        <div class="mb-3">
-          <label for="token" class="form-label">Token</label>
-          <input v-model="token" id="token" class="form-control" type="text" readonly />
-        </div>
-        <button class="btn btn-primary" type="submit">Create User</button>
+        <button type="submit" class="btn btn-primary">Create User</button>
       </form>
+      <p v-if="successMessage" class="text-success mt-3">{{ successMessage }}</p>
+      <p v-if="errorMessage" class="text-danger mt-3">{{ errorMessage }}</p>
     </div>
   </div>
 </template>

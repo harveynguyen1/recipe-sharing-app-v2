@@ -2,7 +2,7 @@
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore();
-const isAdmin = userStore.role === 'admin';
+// const isAdmin = userStore.role === 'admin';
 
 const logout = () => {
   // userStore.logout();
@@ -37,7 +37,7 @@ const logout = () => {
           <li class="nav-item">
             <router-link class="nav-link" to="/favorites">View Favorites</router-link>
           </li>
-          <li v-if="isAdmin" class="nav-item">
+          <li class="nav-item">
             <router-link class="nav-link" to="/create-user">Create User</router-link>
           </li>
         </ul>
