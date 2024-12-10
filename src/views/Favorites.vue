@@ -137,7 +137,7 @@ onMounted(() => {
               class="btn btn-primary btn-sm position-absolute top-0 start-0 m-2"
               @click="startEditing(recipe)"
           >
-            ✎
+            <i class="bi bi-pencil"></i>
           </button>
           <!-- Red delete button -->
           <button

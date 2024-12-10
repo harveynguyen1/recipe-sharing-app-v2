@@ -22,12 +22,12 @@ const userStore = useUserStore();
 // Fetch recipes from TheMealDB API
 const fetchRecipes = async () => {
   try {
+    // Can search for specific meal (For example, chicken, pasta, beef, salad, taco, fish, soup, cake, pizza, sandwich, etc.)
     const response = await fetch(
         'https://www.themealdb.com/api/json/v1/1/search.php?s='
     );
     const data = await response.json();
     recipes.value = data.meals.map((meal) => ({
-      // id: meal.idMeal,
       title: meal.strMeal,
       category: meal.strCategory,
       instructions: meal.strInstructions,
@@ -176,7 +176,7 @@ onMounted(fetchRecipes);
                   class="btn btn-outline-danger"
                   @click="addToFavorites(recipe)"
               >
-                ♥
+                <i class="bi bi-heart-fill"></i>
               </button>
             </div>
           </div>
