@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
-
+import { useRouter } from 'vue-router';
 const userStore = useUserStore();
 // const isAdmin = userStore.role === 'admin';
+
+const router = useRouter();
+const isLoginPage = () => {
+  return router.currentRoute.value.path === '/login';
+};
 
 const logout = () => {
   // userStore.logout();
@@ -41,11 +46,14 @@ const logout = () => {
             <router-link class="nav-link" to="/create-user">Create User</router-link>
           </li>
         </ul>
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" @click="logout">Log Out</a>
-          </li>
-        </ul>
+<!--        <ul class="navbar-nav ms-auto">-->
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" @click="logout">Log Out</a>-->
+<!--          </li>-->
+<!--        </ul>-->
+        <button v-if="!isLoginPage()" class="btn btn-outline-danger" @click="logout">
+          Log Out
+        </button>
       </div>
     </div>
   </nav>

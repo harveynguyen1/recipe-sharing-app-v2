@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import Navbar from '@/components/Navbar.vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const isLoginPage = () => {
+  return router.currentRoute.value.path === '/login';
+};
 </script>
 
 <template>
   <div id="app">
     <!-- Include Navbar -->
-    <Navbar />
+    <Navbar v-if="!isLoginPage()"/>
 
     <!-- Main content area -->
     <div class="content">
